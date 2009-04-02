@@ -8,8 +8,9 @@ before( function() {
     this.session = new Session();
     this.session.save();
   } else {
-    this.session = Session.get( session_id );
-    if (!this.session) {
+    try {
+      this.session = Session.get( session_id );
+    } catch(e) {
       this.session = new Session();
     }
   }
