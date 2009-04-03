@@ -1,6 +1,8 @@
 var Resource = function( typename, watches ) {
 
-  if (!watches) watches = {};
+  if (!watches) watches = {
+
+  };
 
   // the constructor for the object.
   // add a creation date and an id.  Of course,
@@ -24,6 +26,8 @@ var Resource = function( typename, watches ) {
     return system.datastore.search(typename, aQuery, someOptions).map( function( anObject ) {
       anObject.__proto__ = theType.prototype;
       if ( watches['@get'] ) watches['@get'].apply(anObject, []);
+      anObject.created = new Date(anObject.created);
+      anObject.updated = new Date(anObject.updated);
       anObject._set_watches();
       return anObject;
     });
@@ -40,6 +44,8 @@ var Resource = function( typename, watches ) {
     var theObject = system.datastore.get(typename, anId);
     theObject.__proto__ = theType.prototype;
     if ( watches['@get'] ) watches['@get'].apply(theObject, []);
+    theObject.created = new Date( theObject.created );
+    theObject.updated = new Date( theObject.updated );
     theObject._set_watches();
     return theObject;
   };
@@ -64,6 +70,7 @@ var Resource = function( typename, watches ) {
   };
 
   theType.prototype.save = function() {
+    this.created = this.created.getTime();
     this.updated = new Date().getTime();
     system.datastore.write(typename, this, theType.transient);
     if ( watches['@save'] )
