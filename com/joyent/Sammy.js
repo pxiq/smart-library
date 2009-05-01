@@ -114,6 +114,9 @@ function main( aRequest ) {
       try {
 	result = Sammy.match( pattern, fn );
 	if ( result ) {
+	  if ( result instanceof Array ) {
+	    return result;
+	  }
 	  var headers = [ 'Content-Type', 'text/html' ];
 	  for ( var header in thisObj.response.headers ) {
 	    var hval = thisObj.response.headers[header];
@@ -174,7 +177,7 @@ function template ( aFile ) {
   var theFile = system.filesystem.get( aFile );
   if ( theFile ) {
     var tt = new Template();
-    return tt.process( theFile.contents, Sammy.theObject );
+    return tt.process( theFile.contents, Sammy.theObject || {});
   } else {
     throw new Error("404!");
   }
