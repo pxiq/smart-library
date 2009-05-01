@@ -57,8 +57,12 @@ var Resource = function( typename, watches ) {
   theType.prototype._set_watches = function() {
     for ( var prop in watches ) {
       // should probably do this with indexOf instead...
-      if ( !prop.match(/^\@/) )
-	this.watch( prop, watches[prop] );
+      if ( !prop.match(/^\@/) ) {
+	var watcher = function( id, oldval, newval ) {
+	  watches[prop].apply( this, [ id, oldval, newval ] );
+	};
+	this.watch( prop, watcher );
+      }
     }
   };
 
