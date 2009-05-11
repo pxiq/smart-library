@@ -1,231 +1,130 @@
+system.use("com.joyent.Stack");
+
+/*
+ * A test should return either an array of arguments (if successful)
+ *   or a null if it isn't successful.
+ */
 
 var Sammy = {
-  handles: {
-    'GET':    [],
-    'PUT':    [],
-    'POST':   [],
-    'DELETE': [],
-    'before': [],
-    'error':  function() {
-      return [
-	500,
-	"Server Error",
-	['Content-Type', 'text/html'],
-	"There was an error: " + Sammy.theObject.error
-      ];
+  'Test': {
+    'Method': {
+      'GET':    function() { return this.request.method == 'GET';  },
+      'POST':   function() { return this.request.method == 'POST'; },
+      'DELETE': function() { return this.request.method == 'DELETE'; },
+      'PUT':    function() { return this.request.method == 'PUT'; }
     }
-  },
-
-  'Sessions': {
-    'enable': function() {
-      system.use("com.joyent.Sammy.Sessions");
-    }
-  },
-
-  'run_error_handler': function( anError ) {
-    Sammy.theObject.error = anError;
-    return Sammy.handles.error.apply( Sammy.theObject, [] );
-  },
-
-  run_handle: function( aHandle, someArgs ) {
-    if (!someArgs) someArgs = [];
-    var result = aHandle.apply( Sammy.theObject, someArgs );
-    return result;
-  },
-
-  match_primitive: function( pattern, fn ) {
-    if ( typeof( pattern ) == 'string' && pattern == Sammy.theObject.request.uri ) return Sammy.run_handle( fn );
-  },
-
-  match_object: function( object, fn ) {
-    if ( object instanceof RegExp ) {
-      var matches = Sammy.theObject.request.uri.match( object );
-      if ( matches ) {
-	matches.shift();
-	return Sammy.run_handle( fn, matches );
-      }
-    }
-  },
-
-  match: function( thing, fn ) {
-    var result;
-    if ( thing instanceof Object ) {
-      result = Sammy.match_object( thing, fn );
-    } else {
-      result = Sammy.match_primitive( thing, fn );
-    }
-    return result;
-  },
-
-  Pass: function() {},
-
-  Halt: function( aCode, aMessage ) {
-    this.code    = 500;
-    this.message = "Server Error";
-    this.content = "There was an error processing your request.";
-    if ( aCode && aMessage ) {
-      this.code    = aCode;
-      this.content = aMessage;
-    } else if ( aCode && !aMessage ) {
-      this.content = aCode;
-    }
-  },
-
-  Redirect: function( aLocation ) {
-    this.location = aLocation;
-  },
-
-  Created: function( aLocation ) {
-    this.location = aLocation;
   }
-
 };
 
-function main( aRequest ) {
-  var thisObj = {
-    request: aRequest
+Sammy.generate_test = function( testArray ) {
+  var ta = function() {
+    var success = new Array();
+    for each ( var elem in testArray ) {
+      if ( typeof( elem ) == 'function' ) {
+	var result = elem.apply( this, [] );
+	if ( result && result instanceof Array ) {
+	  success.push.apply(success, result);
+	} else if ( !result ) {
+	  return null;
+	}
+      } else if ( typeof( elem ) == 'string' ) {
+	if ( elem != this.request.uri ) return null;
+      } else if ( elem instanceof RegExp ) {
+	var matched = this.request.uri.match( elem );
+	if ( matched ) {
+	  matched.shift();
+	  success.push.apply(success, matched);
+	} else {
+	  return null;
+	}
+      }
+    }
+    return success;
   };
-  Sammy.theObject = thisObj;
-  try {
-    var file = system.filesystem.get("/public" + aRequest.uri);
-    if ( file ) {
-      return [ 200, 'Ok', ['Content-Type', file.mimetype], file ];
-    } else throw new Error("no such file");
-  } catch( e ) {
-    var method  = aRequest.method;
-    var handles = Sammy.handles[ method ];
-    thisObj.response = {
-      headers: {}
-    };
-    for each ( var beforehandle in Sammy.handles.before ) {
-      try {
-	beforehandle.apply( thisObj, [] );
-      } catch(e) {
-	/* couldn't run the before handle for some reason, but we'll ignore it, because
-	 * we can't afford to stop processing here without some refactoring right now.
-	 */
-      }
-    }
 
-    for each ( var handle in handles ) {
-      var result;
-      var pattern = handle.pattern;
-      var fn      = handle.fn;
-      try {
-	result = Sammy.match( pattern, fn );
-	if ( result ) {
-	  if ( result instanceof Array ) {
-	    return result;
-	  }
-	  var headers = [ 'Content-Type', 'text/html' ];
-	  for ( var header in thisObj.response.headers ) {
-	    var hval = thisObj.response.headers[header];
-	    if (hval instanceof Array)
-	      hval.forEach( function(elem) { headers.push(header, elem) } );
-	    else
-	      headers.push( header, hval);
-	  }
-	  return [ 200, 'Ok', headers, result ];
-	}
-      } catch(e) {
-	if ( e instanceof Sammy.Halt ) { return [ e.code, e.message, ['Content-Type', 'text/html'], e.content ]; }
-	else if ( e instanceof Sammy.Created ) return [ 201, "Created", ['Location', e.location], null ];
-	else if ( e instanceof Sammy.Redirect ) return [ 301, "Moved Permanently", ['Location', e.location], null ];
-        else if ( e instanceof Sammy.Pass ) { /* do nothing... */ }
-	else {
-	  try {
-	    return Sammy.run_error_handler( e );
-	  } catch( final_e ) {
-	    // okay, we're really screwed, the custom error handler didn't respond with anything,
-	    // so now we're going for broke.
-	    return [ 500, "Server Error", [ 'Content-Type', 'text/html' ], <html>
-	        <head>
-		  <title>Server Error</title>
-		</head>
-	        <body>
-		  <h1>Server Error</h1>
-		  <p>Not only did the code break, but the custom error handler broke as well.</p>
-		  <p>The error handler raise the following uncaught exception: {final_e.message}</p>
-		  <p>The original error was {e.message}</p>
-	        </body>
-	      </html>
-	    ];
-	  }
-	}
-      }
-    }
-  }
-
-  return [
-    404,
-    "Not Found",
-    ['Content-Type', 'text/html'],
-    <html>
-      <head>
-        <title>Not Found</title>
-      </head>
-      <body>
-        <h1>Not Found</h1>
-        <p>We could not find the page {aRequest.uri}</p>
-      </body>
-   </html>
-  ];
+  return ta;
 };
 
-function template ( aFile ) {
+Sammy.Handler = function( aFunction, shouldRun, aName ) {
+  this.name = aName || "unnamed";
+  this.test = shouldRun;
+  this.run  = function() {
+    var result = aFunction.apply(this, arguments);
+    if ( result ) {
+      var response = Stack.response;
+      response.body = result;
+      return response;
+    } else {
+      return null;
+    }
+  };
+};
+
+
+/* add a handler for static docs */
+(function() {
+  var isStatic = Sammy.generate_test([ Sammy.Test.Method.GET,
+				      function() {
+					try {
+					  var f = system.filesystem.get("/public" + this.request.uri );
+					  if (f) {
+					    return [ f ];
+					  } else return null;
+					} catch(e) { return null; }
+				      }]);
+   var doStatic = function( aFile ) {
+     this.response.body = aFile;
+     this.response.mime = aFile.mimetype;
+     throw this.response;
+   };
+   var hndl = new Sammy.Handler( doStatic, isStatic );
+   Stack.add( hndl );
+})();
+
+
+
+function GET( aTest, aHandler, aName ) {
+  var theTest = Sammy.generate_test([ Sammy.Test.Method.GET, aTest]);
+  var handler = new Sammy.Handler( aHandler, theTest, aName );
+  Stack.add( handler );
+}
+
+function POST( aTest, aHandler, aName ) {
+  var theTest = Sammy.generate_test([Sammy.Test.Method.POST, aTest]);
+  var handler = new Sammy.Handler( aHandler, theTest, aName );
+  Stack.add( handler );
+}
+
+function before( aHandler, aName ) {
+  var theTest = Sammy.generate_test([]);
+  var handler = new Stack.Handler( aHandler, theTest, aName );
+  Stack.add( handler, "early" );
+}
+
+function template( aFilename ) {
   system.use("com.github.ashb.Template");
-  var theFile = system.filesystem.get( aFile );
-  if ( theFile ) {
-    var tt = new Template();
-    return tt.process( theFile.contents, Sammy.theObject || {});
-  } else {
-    throw new Error("404!");
-  }
+  var tt = new Template();
+  var theFile = system.filesystem.get( aFilename );
+  return tt.process( theFile.contents, Stack );
 }
 
-function enable( aThing ) {
-  Sammy[aThing].enable();
-}
+template.tt = template;
+template.trimpath = function( aFilename ) {
+  system.use("com.google.code.trimpath.Template");
+  var theFile = system.filesystem.get( aFilename );
+  return theFile.contents.process( Stack );
+};
 
-function GET ( aPattern, aFunction ) {
-  Sammy.handles.GET.push( { pattern: aPattern, fn: aFunction } );
-}
-
-function POST ( aPattern, aFunction ) {
-  Sammy.handles.POST.push( { pattern: aPattern, fn: aFunction } );
-}
-
-function PUT ( aPattern, aFunction ) {
-  Sammy.handles.PUT.push( { pattern: aPattern, fn: aFunction } );
-}
-
-function DELETE ( aPattern, aFunction ) {
-  Sammy.handles.DELETE.push( { pattern: aPattern, fn: aFunction } );
-}
-
-function before( aFunction ) {
-  Sammy.handles.before.push( aFunction );
-}
-
-function halt( aCode, aMessage ) {
-  throw new Sammy.Halt( aCode, aMessage );
-}
-
-function pass() {
-  throw new Sammy.Pass();
+function enable( aFeature ) {
+  var featureLibrary;
+  if ( aFeature.match(/\./ ) ) featureLibrary = aFeature;
+  else featureLibrary = ["com.joyent.Sammy", aFeature].join(".");
+  system.use( featureLibrary );
 }
 
 function redirect( aLocation ) {
-  throw new Sammy.Redirect( aLocation );
+  var response = new Stack.Response();
+  response.code = 301;
+  response.headers.Location = aLocation;
+  throw response;
 }
-
-function created( aLocation ) {
-  throw new Sammy.Created( aLocation );
-}
-
-function error( aFunction ) {
-  Sammy.handles.error = function() {
-    return [ 500, "Server Error", ['Content-Type', 'text/html'], aFunction.apply( this, [] ) ];
-  };
-}
-
