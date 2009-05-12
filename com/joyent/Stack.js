@@ -25,7 +25,8 @@ Stack.Response = function() {
   this.headers = {};
   this.toHTTPResponse = function() {
     var arr_headers = new Array();
-    this.headers["Content-Type"] = this.mime;
+    if ( this.mime )
+      this.headers["Content-Type"] = this.mime;
     for ( var header in this.headers ) {
       if ( this.headers[header] instanceof Array ) {
 	Array.push.apply( arr_headers, this.headers[header].map( function(a) {
