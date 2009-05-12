@@ -6,6 +6,7 @@ system.use("com.joyent.Stack");
  */
 
 var Sammy = {
+  'debug': false,
   'Test': {
     'Method': {
       'GET':    function() { return this.request.method == 'GET';  },
@@ -16,20 +17,29 @@ var Sammy = {
   }
 };
 
+for ( var method in Sammy.Test.Method ) {
+  Sammy.Test.Method[method].displayName = method;
+}
+
 Sammy.generate_test = function( testArray ) {
   var ta = function() {
     var success = new Array();
     for each ( var elem in testArray ) {
       if ( typeof( elem ) == 'function' ) {
+	if ( Sammy.debug && elem.displayName )
+	  system.console.log("testing if request matches function " + elem.displayName);
 	var result = elem.apply( this, [] );
+	if ( result && Sammy.debug ) system.console.log("it does!");
 	if ( result && result instanceof Array ) {
 	  success.push.apply(success, result);
 	} else if ( !result ) {
 	  return null;
-	}
+	} else { /* do nothing */ }
       } else if ( typeof( elem ) == 'string' ) {
 	if ( elem != this.request.uri ) return null;
       } else if ( elem instanceof RegExp ) {
+	if (Sammy.debug)
+	  system.console.log("testing to see if '" + elem + "' matches '" + this.request.uri +"'");
 	var matched = this.request.uri.match( elem );
 	if ( matched ) {
 	  matched.shift();
@@ -81,7 +91,17 @@ Sammy.Handler = function( aFunction, shouldRun, aName ) {
    Stack.add( hndl );
 })();
 
+function PUT( aTest, aHandler, aName ) {
+  var theTest = Sammy.generate_test([ Sammy.Test.Method.PUT, aTest]);
+  var handler = new Sammy.Handler( aHandler, theTest, aName );
+  Stack.add( handler );
+}
 
+function DELETE( aTest, aHandler, aName ) {
+  var theTest = Sammy.generate_test([ Sammy.Test.Method.GET, aTest]);
+  var handler = new Sammy.Handler( aHandler, theTest, aName );
+  Stack.add( handler );
+}
 
 function GET( aTest, aHandler, aName ) {
   var theTest = Sammy.generate_test([ Sammy.Test.Method.GET, aTest]);
