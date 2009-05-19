@@ -59,7 +59,7 @@ var Resource = function( typename, watches ) {
       // should probably do this with indexOf instead...
       if ( !prop.match(/^\@/) ) {
 	var watcher = function( id, oldval, newval ) {
-	  watches[prop].apply( this, [ id, oldval, newval ] );
+	  return watches[prop].apply( this, [ id, oldval, newval ] );
 	};
 	this.watch( prop, watcher );
       }
