@@ -82,7 +82,7 @@ function main( aRequest ) {
 	  Stack.runHandle( handle );
 	} catch(e) {
 	  if ( e instanceof Stack.Event ) {
-	    if ( e instanceof Stack.Response && phase == "normal")
+	    if ( e instanceof Stack.Response )
 	      throw e;
 	  } else {
 	    throw e;
