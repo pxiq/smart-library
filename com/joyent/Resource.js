@@ -87,9 +87,11 @@ var Resource = function( typename, watches ) {
     if ( this.created instanceof Date )
       this.created = this.created.getTime();
     this.updated = new Date().getTime();
-    system.datastore.write(typename, this, theType.transient);
+
     if ( watches['@save'] )
       watches['@save'].apply(this, []);
+
+    system.datastore.write(typename, this, theType.transient);
   };
 
   theType.typename = typename;
