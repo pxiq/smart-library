@@ -98,7 +98,7 @@ function PUT( aTest, aHandler, aName ) {
 }
 
 function DELETE( aTest, aHandler, aName ) {
-  var theTest = Sammy.generate_test([ Sammy.Test.Method.GET, aTest]);
+  var theTest = Sammy.generate_test([ Sammy.Test.Method.DELETE, aTest]);
   var handler = new Sammy.Handler( aHandler, theTest, aName );
   Stack.add( handler );
 }
