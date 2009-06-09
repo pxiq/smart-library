@@ -93,8 +93,7 @@ function main( aRequest ) {
   } catch(e) {
     if ( e instanceof Stack.Response )
       return e.toHTTPResponse();
-    var t = uneval( Stack ) +
-      "\n" + e.message + " at " + e.fileName + " line " + e.lineNumber;
+    var t = e.message + " at " + e.fileName + " line " + e.lineNumber;
     return Stack.makeerr( t );
   }
   var r = new Stack.Response();
