@@ -82,8 +82,11 @@ function main( aRequest ) {
 	  Stack.runHandle( handle );
 	} catch(e) {
 	  if ( e instanceof Stack.Event ) {
-	    if ( e instanceof Stack.Response )
+	    if ( e instanceof Stack.Response ) {
 	      throw e;
+	    } else if ( e instanceof Stack.Pass ) {
+	      /* ignore, but keep running */
+	    }
 	  } else {
 	    throw e;
 	  }
