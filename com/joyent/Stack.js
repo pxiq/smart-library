@@ -98,6 +98,7 @@ function main( aRequest ) {
   }
   var r = new Stack.Response();
   r.body = "Not found";
+	r.code = 404;
   return r.toHTTPResponse();
 }
 
