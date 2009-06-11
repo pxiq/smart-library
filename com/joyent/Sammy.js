@@ -12,7 +12,8 @@ var Sammy = {
       'GET':    function() { return this.request.method == 'GET';  },
       'POST':   function() { return this.request.method == 'POST'; },
       'DELETE': function() { return this.request.method == 'DELETE'; },
-      'PUT':    function() { return this.request.method == 'PUT'; }
+      'PUT':    function() { return this.request.method == 'PUT'; },
+      'HEAD':   function() { return this.request.method == 'HEAD'; }
     }
   }
 };
@@ -98,6 +99,12 @@ function PUT( aTest, aHandler, aName ) {
 }
 
 function DELETE( aTest, aHandler, aName ) {
+  var theTest = Sammy.generate_test([ Sammy.Test.Method.DELETE, aTest]);
+  var handler = new Sammy.Handler( aHandler, theTest, aName );
+  Stack.add( handler );
+}
+
+function HEAD( aTest, aHandler, aName ) {
   var theTest = Sammy.generate_test([ Sammy.Test.Method.DELETE, aTest]);
   var handler = new Sammy.Handler( aHandler, theTest, aName );
   Stack.add( handler );
