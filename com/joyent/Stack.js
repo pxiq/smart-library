@@ -1,4 +1,3 @@
-
 var Stack = {
   phases: {
     early:  new Array(),
@@ -23,10 +22,14 @@ Stack.Response = function() {
   this.body = "";
   this.mime = 'text/html';
   this.headers = {};
+  this.encoding = 'utf-8';
   this.toHTTPResponse = function() {
     var arr_headers = new Array();
-    if ( this.mime )
+    if ( this.mime ) {
       this.headers["Content-Type"] = this.mime;
+      if ( this.encoding ) 
+        this.headers["Content-Type"] += '; charset=' + this.encoding;
+    }
     for ( var header in this.headers ) {
       if ( this.headers[header] instanceof Array ) {
 	Array.push.apply( arr_headers, this.headers[header].map( function(a) {
@@ -98,7 +101,7 @@ function main( aRequest ) {
   }
   var r = new Stack.Response();
   r.body = "Not found";
-	r.code = 404;
+  r.code = 404;
   return r.toHTTPResponse();
 }
 
