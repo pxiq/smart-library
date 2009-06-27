@@ -88,10 +88,13 @@ var Resource = function( typename, watches ) {
       this.created = this.created.getTime();
     this.updated = new Date().getTime();
 
+    var aCache = {};
     if ( watches['@save'] )
-      watches['@save'].apply(this, []);
+      watches['@save'].apply(this, [ aCache ]);
 
     system.datastore.write(typename, this, theType.transient);
+    if ( watches['@saved'] )
+      watches['@saved'].apply(this, [ aCache ]);
   };
 
   theType.typename = typename;

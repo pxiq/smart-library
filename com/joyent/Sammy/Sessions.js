@@ -3,7 +3,9 @@ var Session = new Resource('session');
 Session.isTransient = true;
 
 before( function() {
-  var session_id = this.request.cookies['session'];
+  var session_id;
+  if ( this.request.cookies ) 
+    session_id = this.request.cookies['session'];
   if ( !session_id ) {
     this.session = new Session();
     this.session.save();
