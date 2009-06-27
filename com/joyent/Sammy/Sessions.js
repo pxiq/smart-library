@@ -1,6 +1,6 @@
 system.use("com.joyent.Resource");
 var Session = new Resource('session');
-Session.isTransient = true;
+Session.transient = true;
 
 before( function() {
   var session_id;
