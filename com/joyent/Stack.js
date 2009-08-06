@@ -79,23 +79,23 @@ Stack.runHandle = function( hndl ) {
 function main( aRequest ) {
   Stack.request = aRequest;
   try {
-    for each ( var phase in ['early','normal','late'] ) {
-      for each( handle in Stack.phases[phase] ) {
-	try {
-	  Stack.runHandle( handle );
-	} catch(e) {
-	  if ( e instanceof Stack.Event ) {
-	    if ( e instanceof Stack.Response ) {
-	      throw e;
-	    } else if ( e instanceof Stack.Pass ) {
-	      /* ignore, but keep running */
-	    }
-	  } else {
-	    throw e;
-	  }
-	}
-      }
-    }
+    ['early','normal','late'].forEach(function(phase) {
+      Stack.phases[phase].forEach(function(handle) {
+        try {
+          Stack.runHandle( handle );
+        } catch(e) {
+          if ( e instanceof Stack.Event ) {
+            if ( e instanceof Stack.Response ) {
+              throw e;
+            } else if ( e instanceof Stack.Pass ) {
+              /* ignore, but keep running */
+            }
+          } else {
+            throw e;
+          }
+        }
+      });
+    });
   } catch(e) {
     if ( e instanceof Stack.Response )
       return e.toHTTPResponse();
