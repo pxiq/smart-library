@@ -24,7 +24,7 @@ for ( var method in Sammy.Test.Method ) {
 
 Sammy.generate_test = function( testArray ) {
   var ta = function() {
-    var success = new Array();
+    var success = [];
     testArray.forEach(function(elem) {
       if ( typeof( elem ) == 'function' ) {
         if ( Sammy.debug && elem.displayName )
