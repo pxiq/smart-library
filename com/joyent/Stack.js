@@ -1,9 +1,9 @@
 var Stack = {
   phases: {
-    early:  new Array(),
-    normal: new Array(),
-    late:   new Array(),
-    error:  new Array()
+    early:  [],
+    normal: [],
+    late:   [],
+    error:  []
   },
   request:  {},
   makeerr: function( anError ) {
@@ -24,7 +24,7 @@ Stack.Response = function() {
   this.headers = {};
   this.encoding = 'utf-8';
   this.toHTTPResponse = function() {
-    var arr_headers = new Array();
+    var arr_headers = [];
     if ( this.mime ) {
       this.headers["Content-Type"] = this.mime;
       if ( this.encoding ) 
