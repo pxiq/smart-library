@@ -11,12 +11,11 @@ var Stack = {
   }
 };
 
-Stack.Event   = function() {};
+Stack.Event = function() {};
 Stack.Halt = function() {};
 Stack.Halt.prototype = new Stack.Event();
 Stack.Pass = function() {};
 Stack.Pass.prototype = new Stack.Event();
-
 Stack.Response = function() {
   this.code = 200;
   this.body = "";
@@ -27,18 +26,19 @@ Stack.Response = function() {
     var arr_headers = [];
     if ( this.mime ) {
       this.headers["Content-Type"] = this.mime;
-      if ( this.encoding ) 
+      if ( this.encoding ) {
         this.headers["Content-Type"] += '; charset=' + this.encoding;
+      }
     }
     for ( var header in this.headers ) {
       if ( this.headers[header] instanceof Array ) {
-	Array.push.apply( arr_headers, this.headers[header].map( function(a) {
-	  return [header, a];
-	}).reduce( function(a, b) {
-	  return a.concat(b);
-	}));
+        Array.push.apply( arr_headers, this.headers[header].map( function(a) {
+          return [header, a];
+        }).reduce( function(a, b) {
+          return a.concat(b);
+        }));
       } else {
-	arr_headers.push( header, this.headers[header] );
+        arr_headers.push( header, this.headers[header] );
       }
     }
     return [this.code, arr_headers, this.body];
@@ -97,8 +97,9 @@ function main( aRequest ) {
       });
     });
   } catch(e) {
-    if ( e instanceof Stack.Response )
+    if ( e instanceof Stack.Response ) {
       return e.toHTTPResponse();
+    }
     var t = e.message + " at " + e.fileName + " line " + e.lineNumber;
     return Stack.makeerr( t );
   }
