@@ -253,7 +253,7 @@ Template.Context.prototype = {
     }
 
     args = args || [];
-    for (var i = 0; i < args.length; i++) {
+    for (var i in args) {
       var arg = args[i];
 
       this.dot_op(this.stash, [arg[0]], {assign: arg[1]});
@@ -285,7 +285,7 @@ Template.Context.prototype = {
       if (Template.Stash.PRIVATE && Template.Stash.PRIVATE.exec(last_seg))
         return;
 
-      for (var i = 0; i < segments.length; i++) {
+      for (var i in segments) {
         var segment = segments[i];
         if (Template.Stash.PRIVATE && Template.Stash.PRIVATE.exec(segment))
           return;
@@ -303,7 +303,7 @@ Template.Context.prototype = {
       return ret;
     }
 
-    for (var i = 0; i < segments.length; i++) {
+    for (var i in segments) {
       var segment = segments[i];
       if (Template.Stash.PRIVATE && Template.Stash.PRIVATE.exec(segment))
         return this.nullObj;
@@ -385,7 +385,7 @@ Template.Context.prototype = {
     if (Object.keys)
       keys = Object.keys(a);
     else {
-      for (var i = 0; i < a.length; i++)
+      for (var i in a)
         keys.push(i);
     }
     keys = keys.sort();
@@ -1921,7 +1921,7 @@ Template.Interpreter = function Template$Interpreter(chunks, config) {
 
   var body = this.walk(chunks);
 
-  for (var i = 0; i < this.blocks.length; i++) {
+  for (var i in this.blocks) {
     this.output += '  ctx.blocks[' + i + '] = ' + this.blocks[i] + ';\n';
   }
 
@@ -1946,7 +1946,7 @@ Template.Interpreter.prototype = {
   walk: function Template$Interpreter$prototype$walk(chunks) {
     var output = '';
     var prev = { type: 'NUL' };
-    for (var i = 0; i < chunks.length; i++) {
+    for (var i in chunks) {
       var chunk = chunks[i]
       if (chunk === undefined) {
         continue;
@@ -2002,7 +2002,7 @@ Template.Interpreter.prototype = {
         var ret = "if (" + condition+ ") {\n" + body.replace(/^/gm, '  ') + "\n}";
 
         if ('elseifs' in term) {
-          for (var i = 0; i < term.elseifs.length; i++) {
+          for (var i in term.elseifs) {
             var elseif = term.elseifs[i];
             ret += ' else if (__perl_truth(' + this.$get_term(elseif.condition)
                 +           ')) {\n'
@@ -2035,7 +2035,7 @@ Template.Interpreter.prototype = {
       case 'QUOTED':
 
         var out = [];
-        for (var i = 0; i < term.segments.length; i++) {
+        for (var i in term.segments) {
           var seg = term.segments[i];
           if (seg.type == ';')
             continue;
@@ -2059,7 +2059,7 @@ Template.Interpreter.prototype = {
       case 'setlist':
 
         var ret = [];
-        for (var i = 0; i < term.chunks.length; i++) {
+        for (var i in term.chunks) {
           var assign = term.chunks[i];
           var t = this.handle_ident_segments([assign.lhs]);
           var stash = t[0],
@@ -2123,7 +2123,7 @@ Template.Interpreter.prototype = {
       case 'hash':
         var pairs = [ ];
 
-        for (var i = 0; i < term.data.length; i++) {
+        for (var i in term.data) {
           var pair = term.data[i];
           if (pair.to.type != 'IDENT') {
             throw new Error('Cant handle ' + pair.to.type + ' in hash key!');
@@ -2244,7 +2244,7 @@ Template.Interpreter.prototype = {
       case 'SWITCH':
         var ret = 'switch ('+this.$get_term(term.expr)+') {\n';
 
-        for (var i = 0; i < term.cases.length; i++) {
+        for (var i in term.cases) {
           var c = term.cases[i];
 
           if (c['default']) {
@@ -2318,7 +2318,7 @@ Template.Interpreter.prototype = {
     var named = args.shift();
     var argsOut = [];
     var out = ''
-    for (var i = 0; i < args.length; i++) {
+    for (var i in args) {
       argsOut.push(this.$get_term(args[i]));
     }
 
@@ -2331,7 +2331,7 @@ Template.Interpreter.prototype = {
   handle_ident_segments: function Template$Interpreter$prototype$handle_ident_segments(segs) {
     var stash = 'ctx.stash';
     var var_name = [];
-    for (var i = 0; i < segs.length; i++) {
+    for (var i in segs) {
       var seg = segs[i];
       if (seg.type == 'IDENT') {
         var_name.push(uneval(seg.literal));
