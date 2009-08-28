@@ -25,7 +25,8 @@ for ( var method in Sammy.Test.Method ) {
 Sammy.generate_test = function( testArray ) {
   var ta = function() {
     var success = [];
-    testArray.forEach(function(elem) {
+    for ( var i = 0; i < testArray.length; i++) {
+      var elem = testArray[i];
       if ( typeof( elem ) == 'function' ) {
         if ( Sammy.debug && elem.displayName )
           system.console.log("testing if request matches function " + elem.displayName);
@@ -51,7 +52,7 @@ Sammy.generate_test = function( testArray ) {
           return null;
         }
       }
-    }, this);
+    }
     return success;
   };
 
