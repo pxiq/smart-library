@@ -95,6 +95,9 @@ var Resource = function( typename, watches ) {
     system.datastore.write(typename, this, theType.transient);
     if ( watches['@saved'] )
       watches['@saved'].apply(this, [ aCache ]);
+
+    this.created = new Date( this.created );
+    this.updated = new Date( this.updated );
   };
 
   theType.typename = typename;
