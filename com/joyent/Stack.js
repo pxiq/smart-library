@@ -84,6 +84,13 @@ function main( aRequest ) {
         try {
           Stack.runHandle( handle );
         } catch(e) {
+
+          // Make sure we catch simple "error" exceptions
+          // FIXME - make sure perl binding errors report correct line numbers
+          if( typeof e === "string" ){
+            throw new Error(e);
+          }
+
           if ( e instanceof Stack.Event ) {
             if ( e instanceof Stack.Response ) {
               throw e;
