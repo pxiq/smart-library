@@ -154,7 +154,7 @@ function enable( aFeature ) {
 
 function redirect( aLocation ) {
   var response = new Stack.Response();
-  response.code = 301;
+  response.code = 302;
   response.headers.Location = aLocation;
   throw response;
 }
